@@ -21,6 +21,33 @@
 #include "map.h"
 #include "map_helpers.h"
 
+int map_get_corner_height(int x, int y, int corner)
+{
+	rct_map_element *mapElement = map_get_surface_element_at(x, y);
+	int baseHeight = mapElement->base_height;
+	int slope = mapElement->properties.surface.slope;
+	int doubleCorner = slope & 16;
+	if (doubleCorner) {
+		if (!(slope & 1)) doubleCorner = 4;
+		else if (!(slope & 2)) doubleCorner = 8;
+		else if (!(slope & 4)) doubleCorner = 1;
+		else if (!(slope & 8)) doubleCorner = 2;
+	}
+
+	switch (corner) {
+	case 0:
+		return baseHeight + (slope & 1 ? (doubleCorner == 1 ? 4 : 2) : 0);
+	case 1:
+		return baseHeight + (slope & 8 ? (doubleCorner == 8 ? 4 : 2) : 0);
+	case 2:
+		return baseHeight + (slope & 2 ? (doubleCorner == 2 ? 4 : 2) : 0);
+	case 3:
+		return baseHeight + (slope & 4 ? (doubleCorner == 4 ? 4 : 2) : 0);
+	default:
+		return baseHeight;
+	}
+}
+
 int map_smooth(int l, int t, int r, int b)
 {
 	int i, x, y, highest, count, cornerHeights[4], doubleCorner, raisedLand = 0;
@@ -43,10 +70,10 @@ int map_smooth(int l, int t, int r, int b)
 
 			// Check corners
 			doubleCorner = -1;
-			cornerHeights[0] = map_get_surface_element_at(x - 1, y - 1)->base_height;
-			cornerHeights[1] = map_get_surface_element_at(x + 1, y - 1)->base_height;
-			cornerHeights[2] = map_get_surface_element_at(x + 1, y + 1)->base_height;
-			cornerHeights[3] = map_get_surface_element_at(x - 1, y + 1)->base_height;
+			cornerHeights[0] = max(map_get_corner_height(x - 1, y - 1, 0), max(map_get_corner_height(x + 1, y + 0, 1), map_get_corner_height(x + 0, y + 1, 2)));
+			cornerHeights[1] = max(map_get_corner_height(x + 1, y - 1, 1), max(map_get_corner_height(x - 1, y + 0, 0), map_get_corner_height(x + 0, y + 1, 3)));
+			cornerHeights[2] = max(map_get_corner_height(x + 1, y + 1, 3), max(map_get_corner_height(x + 1, y + 0, 3), map_get_corner_height(x + 0, y - 1, 0)));
+			cornerHeights[3] = max(map_get_corner_height(x - 1, y + 1, 2), max(map_get_corner_height(x - 1, y + 0, 2), map_get_corner_height(x + 0, y - 1, 1)));
 			highest = mapElement->base_height;
 			for (i = 0; i < 4; i++)
 				highest = max(highest, cornerHeights[i]);
@@ -96,38 +123,33 @@ int map_smooth(int l, int t, int r, int b)
 				}
 			} else {
 				// Corners
-				mapElement2 = map_get_surface_element_at(x + 1, y + 1);
-				if (mapElement2->base_height > mapElement->base_height)
+				if (
+					map_get_corner_height(x + 1, y + 1, 3) > mapElement->base_height ||
+					map_get_corner_height(x + 1, y + 0, 1) > mapElement->base_height ||
+					map_get_corner_height(x + 0, y + 1, 2) > mapElement->base_height
+				)
 					mapElement->properties.surface.slope |= 1;
 
-				mapElement2 = map_get_surface_element_at(x - 1, y + 1);
-				if (mapElement2->base_height > mapElement->base_height)
+				if (
+					map_get_corner_height(x - 1, y + 1, 2) > mapElement->base_height ||
+					map_get_corner_height(x - 1, y + 0, 0) > mapElement->base_height ||
+					map_get_corner_height(x + 0, y + 1, 3) > mapElement->base_height
+				)
 					mapElement->properties.surface.slope |= 8;
-
-				mapElement2 = map_get_surface_element_at(x + 1, y - 1);
-				if (mapElement2->base_height > mapElement->base_height)
+				
+				if (
+					map_get_corner_height(x + 1, y - 1, 1) > mapElement->base_height ||
+					map_get_corner_height(x + 1, y + 0, 3) > mapElement->base_height ||
+					map_get_corner_height(x + 0, y - 1, 0) > mapElement->base_height
+				)
 					mapElement->properties.surface.slope |= 2;
-
-				mapElement2 = map_get_surface_element_at(x - 1, y - 1);
-				if (mapElement2->base_height > mapElement->base_height)
+				
+				if (
+					map_get_corner_height(x - 1, y - 1, 0) > mapElement->base_height ||
+					map_get_corner_height(x - 1, y + 0, 2) > mapElement->base_height ||
+					map_get_corner_height(x + 0, y - 1, 1) > mapElement->base_height
+				)
 					mapElement->properties.surface.slope |= 4;
-
-				// Sides
-				mapElement2 = map_get_surface_element_at(x + 1, y + 0);
-				if (mapElement2->base_height > mapElement->base_height)
-					mapElement->properties.surface.slope |= 1 | 2;
-
-				mapElement2 = map_get_surface_element_at(x - 1, y + 0);
-				if (mapElement2->base_height > mapElement->base_height)
-					mapElement->properties.surface.slope |= 4 | 8;
-
-				mapElement2 = map_get_surface_element_at(x + 0, y - 1);
-				if (mapElement2->base_height > mapElement->base_height)
-					mapElement->properties.surface.slope |= 2 | 4;
-
-				mapElement2 = map_get_surface_element_at(x + 0, y + 1);
-				if (mapElement2->base_height > mapElement->base_height)
-					mapElement->properties.surface.slope |= 1 | 8;
 
 				// Raise
 				if (mapElement->properties.surface.slope == (1 | 2 | 4 | 8)) {
