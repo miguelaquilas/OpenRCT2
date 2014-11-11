@@ -42,7 +42,8 @@ typedef struct {
 	sint16 sprite_right;			// 0x1A
 	sint16 sprite_bottom;			// 0x1C
 	uint8 sprite_direction;			// 0x1E
-	uint8 pad_1F[0x09];
+	uint8 var_1F;
+	uint8 pad_20[0x08];
 	sint32 velocity;				// 0x28
 	uint8 pad_2C[0x04];
 	uint8 ride;						// 0x30
@@ -67,7 +68,9 @@ typedef struct {
 	uint16 var_80;
 	uint8 pad_82[0x31];
 	uint8 var_B3;
-	uint8 pad_B4[0x07];
+	uint8 pad_B4[0x04];
+	uint16 var_B8;
+	uint8 pad_BA;
 	uint8 sound1_id;				// 0xBB
 	uint8 sound1_volume;			// 0xBC
 	uint8 sound2_id;				// 0xBD

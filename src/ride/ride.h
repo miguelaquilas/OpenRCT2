@@ -63,7 +63,13 @@ typedef struct {
 	uint8 var_011;
 	uint8 var_012;
 	uint8 var_013;
-	uint8 pad_014[0x19E];
+	uint8 pad_014[0x1A];
+	uint16 var_2E;
+	uint8 pad_30[0x41];
+	uint8 var_71;
+	uint8 pad_72;
+	uint8 var_73;
+	uint8 pad_74[0x13E];
 	sint8 excitement_multipler;		// 0x1B2
 	sint8 intensity_multipler;		// 0x1B3
 	sint8 nausea_multipler;			// 0x1B4
