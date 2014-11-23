@@ -622,9 +622,9 @@ void window_guest_overview_mouse_up(){
 		w->var_48C = peep->x;
 
 		RCT2_CALLPROC_X(0x0069A512, 0, 0, 0, 0, (int)peep, 0, 0);
-		RCT2_CALLPROC_X(0x006EC473, 0, 0, 0, 0, (int)peep, 0, 0);
+		invalidate_sprite((rct_sprite*)peep);
 
-		sub_69E9D3(0x8000, peep->y, peep->z, (rct_sprite*)peep);
+		sprite_move(0x8000, peep->y, peep->z, (rct_sprite*)peep);
 		peep_decrement_num_riders(peep);
 		peep->state = PEEP_STATE_PICKED;
 		peep->var_2C = 0;
@@ -1224,12 +1224,12 @@ void window_guest_overview_tool_down(){
 	}
 
 	rct_peep* peep = GET_PEEP(w->number);
-	sub_69E9D3(dest_x, dest_y, dest_z, (rct_sprite*)peep);
-	RCT2_CALLPROC_X(0x006EC473, 0, 0, 0, 0, (int)peep, 0, 0);
+	sprite_move(dest_x, dest_y, dest_z, (rct_sprite*)peep);
+	invalidate_sprite((rct_sprite*)peep);
 	peep_decrement_num_riders(peep);
 	peep->state = 0;
 	peep_window_state_update(peep);
-	peep->var_71 = 0xFF;
+	peep->action = 0xFF;
 	peep->var_6D = 0;
 	peep->var_70 = 0;
 	peep->var_6E = 0xFF;
@@ -1238,7 +1238,7 @@ void window_guest_overview_tool_down(){
 	peep->happiness_growth_rate -= 10;
 	if (peep->happiness_growth_rate < 0)peep->happiness_growth_rate = 0;
 
-	RCT2_CALLPROC_X(0x00693B58, 0, 0, 0, 0, (int)peep, 0, 0);
+	sub_693B58(peep);
 	tool_cancel();
 	RCT2_GLOBAL(0x9DE550, sint32) = -1;
 }
@@ -1255,14 +1255,14 @@ void window_guest_overview_tool_abort(){
 	rct_peep* peep = GET_PEEP(w->number);
 	if (peep->state != PEEP_STATE_PICKED) return;
 
-	sub_69E9D3( w->var_48C, peep->y, peep->z + 8, (rct_sprite*)peep);
-	RCT2_CALLPROC_X(0x006EC473, 0, 0, 0, 0, (int)peep, 0, 0);
+	sprite_move( w->var_48C, peep->y, peep->z + 8, (rct_sprite*)peep);
+	invalidate_sprite((rct_sprite*)peep);
 
 	if (peep->x != 0x8000){
 		peep_decrement_num_riders(peep);
 		peep->state = 0;
 		peep_window_state_update(peep);
-		peep->var_71 = 0xFF;
+		peep->action = 0xFF;
 		peep->var_6D = 0;
 		peep->var_70 = 0;
 		peep->var_6E = 0;

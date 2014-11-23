@@ -19,6 +19,7 @@
  *****************************************************************************/
 
 #include <windows.h>
+#include "title.h"
 #include "addresses.h"
 #include "game.h"
 #include "interface/viewport.h"
@@ -81,6 +82,8 @@ int scenario_load_basic(const char *path, rct_s6_header *header, rct_s6_info *in
  */
 int scenario_load(const char *path)
 {
+	log_verbose("loading scenario, %s", path);
+
 	FILE *file;
 	int i, j;
 	rct_s6_header *s6Header = (rct_s6_header*)0x009E34E4;
@@ -92,6 +95,8 @@ int scenario_load(const char *path)
 			fclose(file);
 			RCT2_GLOBAL(0x009AC31B, uint8) = 255;
 			RCT2_GLOBAL(0x009AC31C, uint16) = STR_FILE_CONTAINS_INVALID_DATA;
+
+			log_error("failed to load scenario, invalid checksum");
 			return 0;
 		}
 
@@ -110,7 +115,7 @@ int scenario_load(const char *path)
 					object_list_load();
 			}
 
-			object_read_and_load_entries(file);
+			uint8 load_success = object_read_and_load_entries(file);
 
 			// Read flags (16 bytes). Loads:
 			//	RCT2_ADDRESS_CURRENT_MONTH_YEAR
@@ -147,7 +152,13 @@ int scenario_load(const char *path)
 			sawyercoding_read_chunk(file, (uint8*)RCT2_ADDRESS_COMPLETED_COMPANY_VALUE);
 
 			fclose(file);
-
+			if (!load_success){
+				log_error("failed to load all entries.");
+				set_load_objects_fail_reason();
+				title_load();
+				rct2_endupdate();
+				return 0;//This never gets called
+			}
 			// Check expansion pack
 			// RCT2_CALLPROC_EBPSAFE(0x006757E6);
 
@@ -160,6 +171,7 @@ int scenario_load(const char *path)
 		fclose(file);
 	}
 
+	log_error("failed to find scenario file.");
 	RCT2_GLOBAL(0x009AC31B, uint8) = 255;
 	RCT2_GLOBAL(0x009AC31C, uint16) = STR_FILE_CONTAINS_INVALID_DATA;
 	return 0;
