@@ -19,6 +19,7 @@
  *****************************************************************************/
 
 #include "../addresses.h"
+#include "../object.h"
 #include "localisation.h"
 
 const char *language_names[LANGUAGE_COUNT] = {
@@ -216,4 +217,66 @@ void language_close()
 	language_num_strings = 0;
 
 	gCurrentLanguage = LANGUAGE_UNDEFINED;
+}
+
+uint16 word_98DA16[] = { 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 3 };
+
+/**
+ *
+ *  rct2: 0x006A9E24
+ * ebx: ?
+ * ecx: ?
+ * edx: ?
+ * ebp: strings
+ */
+void object_get_localised_text(int ebx, int objectType, int stringIdOffset, uint8 *strings)
+{
+	uint8 **language_strings = (uint8**)0x009BF2D4;
+	uint8 *src;
+	rct_string_id stringId;
+	int languageId, currentObjectType;
+
+	// TODO Use config set language, however currently config languages don't map to RCT2 language IDs
+	// Use English for now
+	const int nativeLanguageId = 1;
+
+	// Find the right language or fall back to base, native or first defined
+	int baseExists = 0;
+	int nativeExists = 0;
+	int otherExists = 0;
+	while ((languageId = *strings++) != 255) {
+		// Set fallback string
+		if (languageId == 0) {
+			if (!nativeExists) {
+				src = strings;
+				baseExists = 1;
+			}
+		} else if (languageId == nativeLanguageId) {
+			src = strings;
+			nativeExists = 1;
+		} else if (!baseExists && !nativeExists && !otherExists) {
+			src = strings;
+			otherExists = 1;
+		}
+
+		// Skip the string
+		while (*strings++ != 0) { }
+	}
+
+	if (RCT2_GLOBAL(0x009ADAFC, uint8) != 0) {
+		language_strings[3447 + stringIdOffset] = src;
+		return;
+	}
+
+	stringId = 3463;
+	currentObjectType = 0;
+
+	while (currentObjectType != objectType) {
+		stringId += object_entry_group_counts[currentObjectType] * word_98DA16[currentObjectType];
+		currentObjectType++;
+	}
+
+	stringId += word_98DA16[currentObjectType] * ebx;
+	RCT2_GLOBAL(0x00F42BBC, uint32) = stringId;
+	language_strings[stringId + stringIdOffset] = src;
 }

@@ -43,5 +43,6 @@ extern int gCurrentLanguage;
 const char *language_get_string(rct_string_id id);
 int language_open(int id);
 void language_close();
+void object_get_localised_text(int ebx, int objectType, int stringIdOffset, uint8 *strings);
 
 #endif

@@ -19,6 +19,7 @@
  *****************************************************************************/
 
 #include "addresses.h"
+#include "drawing/drawing.h"
 #include "localisation/localisation.h"
 #include "object.h"
 #include "platform/osinterface.h"
@@ -404,12 +405,156 @@ int object_scenario_load_custom_text(char* chunk){
 	return 1;
 }
 
+int object_paint_ride(int eax, int ebx, int ecx, int edx, int esi, int edi, int ebp)
+{
+	return RCT2_CALLPROC_X(0x006DE83E, eax, ebx, ecx, edx, esi, edi, ebp) & 0x100;
+}
+
+int object_paint_small_scenery(int eax, int ebx, int ecx, int edx, int esi, int edi, int ebp)
+{
+	return RCT2_CALLPROC_X(0x006E3466, eax, ebx, ecx, edx, esi, edi, ebp) & 0x100;
+}
+
+int object_paint_large_scenery(int eax, int ebx, int ecx, int edx, int esi, int edi, int ebp)
+{
+	return RCT2_CALLPROC_X(0x006B92A7, eax, ebx, ecx, edx, esi, edi, ebp) & 0x100;
+}
+
+int object_paint_wall(int eax, int ebx, int ecx, int edx, int esi, int edi, int ebp)
+{
+	return RCT2_CALLPROC_X(0x006E5A25, eax, ebx, ecx, edx, esi, edi, ebp) & 0x100;
+}
+
+int object_paint_banner(int eax, int ebx, int ecx, int edx, int esi, int edi, int ebp)
+{
+	return RCT2_CALLPROC_X(0x006BA84E, eax, ebx, ecx, edx, esi, edi, ebp) & 0x100;
+}
+
+int object_paint_path(int eax, int ebx, int ecx, int edx, int esi, int edi, int ebp)
+{
+	return RCT2_CALLPROC_X(0x006A8621, eax, ebx, ecx, edx, esi, edi, ebp) & 0x100;
+}
+
+int object_paint_path_bit(int eax, int ebx, int ecx, int edx, int esi, int edi, int ebp)
+{
+	return RCT2_CALLPROC_X(0x006A86E2, eax, ebx, ecx, edx, esi, edi, ebp) & 0x100;
+}
+
+int object_paint_scenery_set(int eax, int ebx, int ecx, int edx, int esi, int edi, int ebp)
+{
+	return RCT2_CALLPROC_X(0x006B93AA, eax, ebx, ecx, edx, esi, edi, ebp) & 0x100;
+}
+
+int object_paint_park_entrance(int eax, int ebx, int ecx, int edx, int esi, int edi, int ebp)
+{
+	return RCT2_CALLPROC_X(0x00666E42, eax, ebx, ecx, edx, esi, edi, ebp) & 0x100;
+}
+
+typedef struct {
+	uint32 num_elements;
+	uint32 unk_04;
+	rct_g1_element *elements;
+} sub_6A9ED1_input;
+
+int sub_6A9ED1(sub_6A9ED1_input *ebp)
+{
+	rct_g1_element *g1Elements = RCT2_ADDRESS(RCT2_ADDRESS_G1_ELEMENTS, rct_g1_element);
+	int i;
+
+	int ebx = ebp->num_elements * 16 + (int)(&ebp->elements[0]);
+
+	int startElementIndex = RCT2_GLOBAL(0x009ADAF0, uint32);
+	for (i = startElementIndex; i < startElementIndex + ebp->num_elements; i++) {
+		g1Elements[i] = ebp->elements[i];
+		g1Elements[i].offset += ebx;
+	}
+
+	RCT2_GLOBAL(0x009ADAF0, uint32) += ebp->num_elements;
+	return startElementIndex;
+}
+
+/**
+ *
+ *  rct2: 0x006E6E2A
+ * eax = 
+ * ebx = 
+ * ecx = x or object type
+ * edx = y
+ * esi = 
+ * edi = dpi
+ * ebp = 
+ */
+int object_paint_water(int eax, int ebx, int ecx, int edx, int esi, int edi, int ebp)
+{
+	int al = eax & 0xFF;
+	int ah = (eax >> 8) & 0xFF;
+
+	if (al == 3) {
+		if (ah == 0)
+			gfx_draw_string_centred((rct_drawpixelinfo*)edi , STR_NO_IMAGE, ecx , edx , 0, (void*)esi);
+	} else if (al == 1) {
+		RCT2_GLOBAL(esi + 0, uint16) = 0;
+		RCT2_GLOBAL(esi + 2, uint32) = 0;
+		RCT2_GLOBAL(esi + 6, uint32) = 0;
+		RCT2_GLOBAL(esi + 10, uint32) = 0;
+	} else if (al > 1) {
+		return 0;
+	} else {
+		ebp = esi + 16;
+		object_get_localised_text(ebx, ecx, 0, ebp);
+		RCT2_GLOBAL(esi + 0, uint16) = eax & 0xFFFF;
+		sub_6A9ED1(ebp);
+		RCT2_GLOBAL(esi + 2, uint32) = eax;
+		RCT2_GLOBAL(esi + 6, uint32) = eax + 1;
+		RCT2_GLOBAL(esi + 10, uint32) = eax + 4;
+		
+		uint16 *er_edi = RCT2_GLOBAL(0x009ADAF4, uint16*);
+		if (er_edi != (uint16*)0xFFFFFFFF)
+			*er_edi = 0;
+
+		if (RCT2_GLOBAL(0x009ADAFD, uint8) == 0) {
+			RCT2_CALLPROC_EBPSAFE(0x006837E3);
+			gfx_invalidate_screen();
+		}
+	}
+
+	// return RCT2_CALLPROC_X(0x006E6E2A, eax, ebx, ecx, edx, esi, edi, ebp) & 0x100;
+}
+
+int object_paint_stex(int eax, int ebx, int ecx, int edx, int esi, int edi, int ebp)
+{
+	return RCT2_CALLPROC_X(0x0066B355, eax, ebx, ecx, edx, esi, edi, ebp) & 0x100;
+}
+
 int object_paint(int type, int eax, int ebx, int ecx, int edx, int esi, int edi, int ebp)
 {
-	//if (type == OBJECT_TYPE_SCENARIO_TEXT){
-	//	if (eax == 0) return object_scenario_load_custom_text((char*)esi);
-	//}
-	return RCT2_CALLPROC_X(RCT2_ADDRESS(0x0098D9D4, uint32)[type], eax, ebx, ecx, edx, esi, edi, ebp) & 0x100;
+	switch (type) {
+	case 0:
+		return object_paint_ride(eax, ebx, ecx, edx, esi, edi, ebp);
+	case 1:
+		return object_paint_small_scenery(eax, ebx, ecx, edx, esi, edi, ebp);
+	case 2:
+		return object_paint_large_scenery(eax, ebx, ecx, edx, esi, edi, ebp);
+	case 3:
+		return object_paint_wall(eax, ebx, ecx, edx, esi, edi, ebp);
+	case 4:
+		return object_paint_banner(eax, ebx, ecx, edx, esi, edi, ebp);
+	case 5:
+		return object_paint_path(eax, ebx, ecx, edx, esi, edi, ebp);
+	case 6:
+		return object_paint_path_bit(eax, ebx, ecx, edx, esi, edi, ebp);
+	case 7:
+		return object_paint_scenery_set(eax, ebx, ecx, edx, esi, edi, ebp);
+	case 8:
+		return object_paint_park_entrance(eax, ebx, ecx, edx, esi, edi, ebp);
+	case 9:
+		return object_paint_water(eax, ebx, ecx, edx, esi, edi, ebp);
+	case 10:
+		return object_paint_stex(eax, ebx, ecx, edx, esi, edi, ebp);
+	default:
+		assert(false);
+		return 0;
+	}
 }
 
 /**
