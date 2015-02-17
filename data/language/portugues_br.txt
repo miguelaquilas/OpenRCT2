@@ -517,10 +517,10 @@ STR_0512    :
 STR_0513    :
 STR_0514    :Trains suspended beneath the roller coaster track swing out to the side around corners
 STR_0515    :
-STR_0516    :A gentle roller coaster for people who haven't yet got the courage to face the larger rides
-STR_0517    :Passengers ride in miniature trains along a narrow-gauge railway track
-STR_0518    :Passengers travel in electric trains along a monorail track
-STR_0519    :Passengers ride in small cars hanging beneath the single-rail track, swinging freely from side to side around corners
+STR_0516    :Uma montanha-russa suave para as pessoas que ainda não têm a coragem de enfrentar os passeios maiores
+STR_0517    :Passageiros viajam em miniaturas de trens aatravés de uma linha férrea de bitola estreita
+STR_0518    :Os passageiros viajam em trens elétricos atrravés do monotrilho
+STR_0519    :Passageiros andam em carros pequenos pendurados por uma única faixa de trilhos, balançando livremente de um lado para os cantos
 STR_0520    :
 STR_0521    :
 STR_0522    :
@@ -528,7 +528,7 @@ STR_0523    :Riders travel slowly in powered vehicles along a track-based route
 STR_0524    :
 STR_0525    :
 STR_0526    :
-STR_0527    :A smooth steel-tracked roller coaster capable of vertical loops
+STR_0527    :Uma montanha-russa de aço com capacidade de loops verticais
 STR_0528    :
 STR_0529    :
 STR_0530    :Cars hang from a steel cable which runs continuously from one end of the ride to the other and back again
